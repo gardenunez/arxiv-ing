@@ -24,6 +24,7 @@ def create_db():
     conn.commit()
     conn.close()
 
+
 def select_top_ten_raw_data():
     print 'selecting crawled data'
     conn = sqlite3.connect('arxiv_crawler.db')
@@ -33,6 +34,7 @@ def select_top_ten_raw_data():
         print row
     conn.close()
 
+
 def clean_raw_data():
     print 'cleaning raw data table'
     conn = sqlite3.connect('arxiv_crawler.db')
@@ -41,6 +43,7 @@ def clean_raw_data():
     c.execute('delete from raw_data')
     conn.commit()
     conn.close()
+
 
 def save_to_file(data, filename):
     with open(filename, 'w+') as arxiv_file:
@@ -53,8 +56,8 @@ def save_arxiv_data_to_db(data):
     conn = sqlite3.connect('arxiv_crawler.db')
     try:
         c = conn.cursor()
-        xmlobj = minidom.parseString(data)
-        entries = xmlobj.getElementsByTagName('entry')
+        xml_obj = minidom.parseString(data)
+        entries = xml_obj.getElementsByTagName('entry')
         raw_data_entries = []
         for entry in entries:
             url = entry.getElementsByTagName('id')[0].childNodes[0].data
@@ -64,9 +67,8 @@ def save_arxiv_data_to_db(data):
         c.executemany('INSERT INTO raw_data(arxiv_id, data, created_date) values (?,?,?)',
                       raw_data_entries)
         conn.commit()
-    except Exception:
+    finally:
         conn.close()
-        raise
 
 
 def fetch_arxiv_data(category, offset=0, limit=100):
@@ -79,37 +81,6 @@ def fetch_arxiv_data(category, offset=0, limit=100):
     return data
 
 
-def digest_arxiv_entry(xmlsource):
-    """
-    Parse an arxiv xml string
-    :param xmlsource: str
-    :return: list of articles
-    """
-    xmldata = minidom.parseString(xmlsource)
-    articles = []
-    entries = xmldata.getElementsByTagName('entry')
-    for entry in entries:
-        url = entry.getElementsByTagName('id')[0].childNodes[0].data
-        doi_elem = entry.getElementsByTagName('arxiv:doi')
-        doi = None
-        if doi_elem:
-            doi = doi_elem[0].childNodes[0].data
-        title = entry.getElementsByTagName('title')[0].childNodes[0].data.encode('ascii', 'ignore').replace('\n', ' ')
-        abstract = entry.getElementsByTagName('summary')[0].childNodes[0].data.encode('ascii', 'ignore').replace('\n', ' ').lstrip()
-        published_date = entry.getElementsByTagName('published')[0].childNodes[0].data
-        updated_date = entry.getElementsByTagName('updated')[0].childNodes[0].data
-        articles.append(
-            {
-                'doi': doi,
-                'title': title,
-                'abstract': abstract,
-                'published': published_date,
-                'updated': updated_date,
-                'url': url
-            }
-        )
-    return articles
-
 def crawl_all_categories():
     """Crawl all entries from all categories"""
     print 'start crawling all categories'
@@ -118,6 +89,7 @@ def crawl_all_categories():
     for cat in SUBJECT_CLASSIFICATION.keys()[:5]:
         crawl_by_category(cat)
     print 'end process!!'
+
 
 def crawl_by_category(cat):
     if cat not in SUBJECT_CLASSIFICATION:
