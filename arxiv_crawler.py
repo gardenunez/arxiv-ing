@@ -113,7 +113,7 @@ def digest_arxiv_entry(xmlsource):
 def crawl_all_categories():
     """Crawl all entries from all categories"""
     print 'start crawling all categories'
-    #TODO
+    #TODO uncomment this
     # for cat in SUBJECT_CLASSIFICATION.keys():
     for cat in SUBJECT_CLASSIFICATION.keys()[:5]:
         crawl_by_category(cat)
@@ -126,7 +126,7 @@ def crawl_by_category(cat):
     print 'crawling category: {}'.format(cat_name)
     data = fetch_arxiv_data(cat, 0, 1)
     xml_data = minidom.parseString(data)
-    # TODO
+    # TODO uncomment this
     # total_results = int(xml_data.getElementsByTagName('opensearch:totalResults')[0].childNodes[0].data)
     total_results = 5
     print 'starting to fetch {} entries'.format(total_results)
