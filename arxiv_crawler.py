@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import urllib
 import argparse
 import sqlite3
@@ -97,8 +99,8 @@ def crawl_by_category(cat):
     cat_name = SUBJECT_CLASSIFICATION[cat]
     print 'crawling category: {}'.format(cat_name)
     data = fetch_arxiv_data(cat, 0, 1)
-    xml_data = minidom.parseString(data)
     # TODO uncomment this
+    # xml_data = minidom.parseString(data)
     # total_results = int(xml_data.getElementsByTagName('opensearch:totalResults')[0].childNodes[0].data)
     total_results = 5
     print 'starting to fetch {} entries'.format(total_results)
