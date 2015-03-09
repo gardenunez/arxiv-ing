@@ -65,7 +65,7 @@ def digest_arxiv_entry(source):
     :param source: str
     :return: list of articles
     """
-    xml_data = minidom.parseString(source)
+    xml_data = minidom.parseString(source.encode('utf-8'))
     articles = []
     entries = xml_data.getElementsByTagName('entry')
     for entry in entries:
@@ -78,7 +78,7 @@ def select_top_ten_raw_data():
     rows = []
     with sqlite3.connect('arxiv_crawler.db') as conn:
         c = conn.cursor()
-        c.execute('select * from raw_data limit 3')
+        c.execute('select * from raw_data limit 100')
         rows = c.fetchall()
     return rows
 
