@@ -4,62 +4,7 @@
 import sqlite3
 from xml.dom import minidom
 import sys
-
-
-def parse_arxiv_entry(entry):
-    """
-    Parse a single arxiv entry xml node into dictionary fields
-    :param entry: arxiv node for an article entry
-    :return: dictionary with publication data
-    """
-    url = entry.getElementsByTagName('id')[0].childNodes[0].data
-    tokens = url.split('/')
-    arxiv_id = tokens[len(tokens) - 1]
-    doi_elem = entry.getElementsByTagName('arxiv:doi')
-    doi = ""
-    if doi_elem:
-        doi = doi_elem[0].childNodes[0].data
-    title = entry.getElementsByTagName('title')[0].childNodes[0].data.replace('\n', ' ')
-    abstract = entry.getElementsByTagName('summary')[0].childNodes[0].data\
-        .replace('\n', ' ').lstrip()
-    published_date = entry.getElementsByTagName('published')[0].childNodes[0].data
-    updated_date = entry.getElementsByTagName('updated')[0].childNodes[0].data
-
-    authors = []
-
-    for author in entry.getElementsByTagName('author'):
-        affiliation = author.getElementsByTagName('arxiv:affiliation')
-        authors.append(
-            {
-                "name": author.getElementsByTagName('name')[0].childNodes[0].data,
-                "affiliation": affiliation and affiliation[0].childNodes[0].data or ""
-            }
-        )
-    journal_ref = entry.getElementsByTagName('arxiv:journal_ref')
-    journal = ""
-    if journal_ref:
-        journal = journal_ref[0].childNodes[0].data
-
-    full_text = ""
-    links = entry.getElementsByTagName('link') or []
-    for link in links:
-        if link.hasAttribute('title') and link.getAttribute('title') == 'pdf':
-            full_text = link.getAttribute('href')
-            break
-
-    return {
-        'arxiv_id': arxiv_id,
-        'doi': doi,
-        'title': title,
-        'abstract': abstract,
-        'authors': authors,
-        'published': published_date,
-        'updated': updated_date,
-        'url': url,
-        'journal': journal,
-        'full_text': full_text
-    }
-
+from arxiv_parser import parse_arxiv_entry
 
 def digest_arxiv_entry(source):
     """
