@@ -22,7 +22,10 @@ def create_db():
     c = conn.cursor()
 
     c.execute('''CREATE TABLE IF NOT EXISTS raw_data
-                 (arxiv_id text, data text, created_date text)''')
+                 (arxiv_id text PRIMARY KEY,
+                 data text,
+                 updated_date text,
+                 created_date text)''')
     conn.commit()
     conn.close()
 
@@ -65,8 +68,12 @@ def save_arxiv_data_to_db(data):
             url = entry.getElementsByTagName('id')[0].childNodes[0].data
             tokens = url.split('/')
             arxiv_id = tokens[len(tokens) - 1]
-            raw_data_entries.append((arxiv_id, entry.toxml().replace('\n', ''), str(datetime.datetime.now())))
-        c.executemany('INSERT INTO raw_data(arxiv_id, data, created_date) values (?,?,?)',
+            updated_date = entry.getElementsByTagName('updated')[0].childNodes[0].data
+            raw_data_entries.append((arxiv_id,
+                                     entry.toxml().replace('\n', ''),
+                                     updated_date,
+                                     str(datetime.datetime.now())))
+        c.executemany('INSERT INTO raw_data(arxiv_id, data,updated_date, created_date) values (?,?,?,?)',
                       raw_data_entries)
         conn.commit()
     finally:
@@ -87,8 +94,8 @@ def crawl_all_categories():
     """Crawl all entries from all categories"""
     print 'start crawling all categories'
     #TODO uncomment this
-    # for cat in SUBJECT_CLASSIFICATION.keys():
-    for cat in SUBJECT_CLASSIFICATION.keys()[:5]:
+    for cat in SUBJECT_CLASSIFICATION.keys():
+    #for cat in SUBJECT_CLASSIFICATION.keys()[:5]:
         crawl_by_category(cat)
     print 'end process!!'
 
@@ -100,17 +107,19 @@ def crawl_by_category(cat):
     print 'crawling category: {}'.format(cat_name)
     data = fetch_arxiv_data(cat, 0, 1)
     # TODO uncomment this
-    # xml_data = minidom.parseString(data)
-    # total_results = int(xml_data.getElementsByTagName('opensearch:totalResults')[0].childNodes[0].data)
-    total_results = 5
+    xml_data = minidom.parseString(data)
+    total_results = int(xml_data.getElementsByTagName('opensearch:totalResults')[0].childNodes[0].data)
+    # total_results = 5
     print 'starting to fetch {} entries'.format(total_results)
     if total_results > 0:
-        offset = -10
-        limit = 10
+        offset = -100
+        limit = 100
         while offset < total_results:
             offset += limit
+            print 'fetching next {} entries'.format(limit)
             data = fetch_arxiv_data(cat, offset, limit)
             save_arxiv_data_to_db(data)
+            print 'entries saved!!'
             #filename = "arxiv_{}_{}_{}.xml".format(cat, offset, limit)
             #saveToFile(data, filename)
     print 'end crawling {}!!'.format(cat_name)
@@ -120,7 +129,6 @@ def main():
     create_db()
     clean_raw_data()
     crawl_all_categories()
-    select_top_ten_raw_data()
 
 if __name__ == '__main__':
     main()
