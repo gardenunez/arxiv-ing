@@ -6,7 +6,6 @@
 # Add arguments to script: crawl all, category, list-of-ids, etc
 # Update if greater updated date
 # allow crawl into files
-# Isolate db access and queries
 # Subject categories into DB
 import urllib
 import argparse
