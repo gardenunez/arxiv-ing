@@ -5,6 +5,8 @@ import sqlite3
 from xml.dom import minidom
 import sys
 from arxiv_parser import parse_arxiv_entry
+from db_utils import select_raw_data_by_id
+
 
 def digest_arxiv_entry(source):
     """
@@ -20,28 +22,12 @@ def digest_arxiv_entry(source):
 
 
 def select_top_ten_raw_data():
-    rows = []
     with sqlite3.connect('arxiv_crawler.db') as conn:
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute('select arxiv_id, data from raw_data limit 10')
         rows = c.fetchall()
     return rows
-
-
-def select_raw_data_by_id(arxiv_id):
-    """
-    Return the arxiv data for the specified id
-    :param arxiv_id: Id of arxiv
-    :return: dictionary with the arxiv_id and data
-    :rtype: dict
-    """
-    with sqlite3.connect('arxiv_crawler.db') as conn:
-        conn.row_factory = sqlite3.Row
-        c = conn.cursor()
-        c.execute('select arxiv_id, data from raw_data where arxiv_id=:Id limit 1', {"Id": arxiv_id})
-        row = c.fetchone()
-        return row
 
 
 def main():

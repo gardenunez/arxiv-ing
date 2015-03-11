@@ -6,16 +6,15 @@
 # Add arguments to script: crawl all, category, list-of-ids, etc
 # Update if greater updated date
 # allow crawl into files
-# Unify parser methods like: GetDoi, GetUpdatedDate, GetArxivId -> parser object
 # Isolate db access and queries
 # Subject categories into DB
 import urllib
 import argparse
-import sqlite3
 from xml.dom import minidom
 import datetime
 from arxiv_subject_classification import SUBJECT_CLASSIFICATION
 from arxiv_parser import getArxivId, getUpdatedDate
+from db_utils import create_db, insert_raw_data_list
 
 def get_args():
     """Get arguments"""
@@ -24,66 +23,10 @@ def get_args():
                         help="Subject Classification or Category of Arxiv")
 
 
-def create_db():
-    print 'creating table'
-    conn = sqlite3.connect('arxiv_crawler.db')
-    c = conn.cursor()
-
-    c.execute('''CREATE TABLE IF NOT EXISTS raw_data
-                 (arxiv_id text PRIMARY KEY,
-                 data text,
-                 updated_date text,
-                 created_date text)''')
-    conn.commit()
-    conn.close()
-
-
-def select_top_ten_raw_data():
-    print 'selecting crawled data'
-    conn = sqlite3.connect('arxiv_crawler.db')
-    c = conn.cursor()
-
-    for row in c.execute('select * from raw_data limit 100'):
-        print row
-    conn.close()
-
-
-def clean_raw_data():
-    print 'cleaning raw data table'
-    conn = sqlite3.connect('arxiv_crawler.db')
-    c = conn.cursor()
-
-    c.execute('delete from raw_data')
-    conn.commit()
-    conn.close()
-
-
 def save_to_file(data, filename):
     with open(filename, 'w+') as arxiv_file:
         arxiv_file.write(data)
         print '{} file saved'.format(filename)
-
-
-def save_arxiv_data_to_db(data):
-    """Save arxiv xml raw data into arxiv_crawler db"""
-    conn = sqlite3.connect('arxiv_crawler.db')
-    try:
-        c = conn.cursor()
-        xml_obj = minidom.parseString(data)
-        entries = xml_obj.getElementsByTagName('entry')
-        raw_data_entries = []
-        for entry in entries:
-            arxiv_id = getArxivId(entry)
-            updated_date = getUpdatedDate(entry)
-            raw_data_entries.append((arxiv_id,
-                                     entry.toxml().replace('\n', ''),
-                                     updated_date,
-                                     str(datetime.datetime.now())))
-        c.executemany('INSERT OR IGNORE INTO raw_data(arxiv_id, data,updated_date, created_date) values (?,?,?,?)',
-                      raw_data_entries)
-        conn.commit()
-    finally:
-        conn.close()
 
 
 def fetch_arxiv_data(category, offset=0, limit=100):
@@ -95,6 +38,19 @@ def fetch_arxiv_data(category, offset=0, limit=100):
     data = urllib.urlopen(url).read()
     return data
 
+
+def create_raw_data_entities(data):
+    xml_obj = minidom.parseString(data)
+    entries = xml_obj.getElementsByTagName('entry')
+    raw_data_entries = []
+    for entry in entries:
+        arxiv_id = getArxivId(entry)
+        updated_date = getUpdatedDate(entry)
+        raw_data_entries.append((arxiv_id,
+                                 entry.toxml().replace('\n', ''),
+                                 updated_date,
+                                 str(datetime.datetime.now())))
+    return raw_data_entries
 
 def crawl_all_categories():
     """Crawl all entries from all categories"""
@@ -123,7 +79,8 @@ def crawl_by_category(cat):
         while offset < total_results:
             offset += limit
             data = fetch_arxiv_data(cat, offset, limit)
-            save_arxiv_data_to_db(data)
+            raw_data = create_raw_data_entities(data)
+            insert_raw_data_list(raw_data)
             #filename = "arxiv_{}_{}_{}.xml".format(cat, offset, limit)
             #saveToFile(data, filename)
     print '[INFO] {} end crawling {}!!'.format(datetime.datetime.now(),
