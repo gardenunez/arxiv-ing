@@ -47,6 +47,9 @@ def getJournal(entry):
     return journal
 
 
+def getUpdatedDate(entry):
+    return entry.getElementsByTagName('updated')[0].childNodes[0].data
+
 def parse_arxiv_entry(entry):
     """
     Parse a single arxiv entry xml node into dictionary fields
@@ -62,7 +65,7 @@ def parse_arxiv_entry(entry):
     authors = getAuthors(entry)
     journal = getJournal(entry)
     published_date = entry.getElementsByTagName('published')[0].childNodes[0].data
-    updated_date = entry.getElementsByTagName('updated')[0].childNodes[0].data
+    updated_date = getUpdatedDate(entry)
     primary_category = entry.getElementsByTagName('arxiv:primary_category')[0].getAttribute('term')
     full_text = getFullTextUrl(entry)
 

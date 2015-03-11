@@ -15,7 +15,7 @@ import sqlite3
 from xml.dom import minidom
 import datetime
 from arxiv_subject_classification import SUBJECT_CLASSIFICATION
-
+from arxiv_parser import getArxivId, getUpdatedDate
 
 def get_args():
     """Get arguments"""
@@ -73,10 +73,8 @@ def save_arxiv_data_to_db(data):
         entries = xml_obj.getElementsByTagName('entry')
         raw_data_entries = []
         for entry in entries:
-            url = entry.getElementsByTagName('id')[0].childNodes[0].data
-            tokens = url.split('/')
-            arxiv_id = tokens[len(tokens) - 1]
-            updated_date = entry.getElementsByTagName('updated')[0].childNodes[0].data
+            arxiv_id = getArxivId(entry)
+            updated_date = getUpdatedDate(entry)
             raw_data_entries.append((arxiv_id,
                                      entry.toxml().replace('\n', ''),
                                      updated_date,
