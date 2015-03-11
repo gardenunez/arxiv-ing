@@ -7,6 +7,7 @@
 # Update if greater updated date
 # allow crawl into files
 # Subject categories into DB
+# remove unnecessary empty strings in raw data: " ".join(abstract.split())
 import urllib
 import argparse
 from xml.dom import minidom
