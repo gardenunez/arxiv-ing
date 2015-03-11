@@ -1,6 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+#TODO
+# Log errors
+# Add arguments to script: crawl all, category, list-of-ids, etc
+# Update if greater updated date
+# allow crawl into files
+# Unify parser methods like: GetDoi, GetUpdatedDate, GetArxivId -> parser object
+# Isolate db access and queries
+# Subject categories into DB
 import urllib
 import argparse
 import sqlite3
@@ -73,7 +81,7 @@ def save_arxiv_data_to_db(data):
                                      entry.toxml().replace('\n', ''),
                                      updated_date,
                                      str(datetime.datetime.now())))
-        c.executemany('INSERT INTO raw_data(arxiv_id, data,updated_date, created_date) values (?,?,?,?)',
+        c.executemany('INSERT OR IGNORE INTO raw_data(arxiv_id, data,updated_date, created_date) values (?,?,?,?)',
                       raw_data_entries)
         conn.commit()
     finally:
@@ -93,9 +101,7 @@ def fetch_arxiv_data(category, offset=0, limit=100):
 def crawl_all_categories():
     """Crawl all entries from all categories"""
     print 'start crawling all categories'
-    #TODO uncomment this
     for cat in SUBJECT_CLASSIFICATION.keys():
-    #for cat in SUBJECT_CLASSIFICATION.keys()[:5]:
         crawl_by_category(cat)
     print 'end process!!'
 
@@ -106,10 +112,8 @@ def crawl_by_category(cat):
     cat_name = SUBJECT_CLASSIFICATION[cat]
     print 'crawling category: {}'.format(cat_name)
     data = fetch_arxiv_data(cat, 0, 1)
-    # TODO uncomment this
     xml_data = minidom.parseString(data)
     total_results = int(xml_data.getElementsByTagName('opensearch:totalResults')[0].childNodes[0].data)
-    # total_results = 5
     print 'starting to fetch {} entries'.format(total_results)
     if total_results > 0:
         offset = -100
@@ -127,7 +131,6 @@ def crawl_by_category(cat):
 
 def main():
     create_db()
-    clean_raw_data()
     crawl_all_categories()
 
 if __name__ == '__main__':
