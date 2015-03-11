@@ -100,33 +100,36 @@ def fetch_arxiv_data(category, offset=0, limit=100):
 
 def crawl_all_categories():
     """Crawl all entries from all categories"""
-    print 'start crawling all categories'
+    print '[INFO] start crawling all categories'
     for cat in SUBJECT_CLASSIFICATION.keys():
-        crawl_by_category(cat)
-    print 'end process!!'
+        try:
+            crawl_by_category(cat)
+        except Exception:
+            print '[Error] crawling: {}'.format(cat)
+    print '[INFO] end process!!'
 
 
 def crawl_by_category(cat):
     if cat not in SUBJECT_CLASSIFICATION:
         raise Exception("Invalid category")
     cat_name = SUBJECT_CLASSIFICATION[cat]
-    print 'crawling category: {}'.format(cat_name)
+    print '[INFO] {} crawling category: {}'.format(datetime.datetime.now(),
+                                                   cat_name)
     data = fetch_arxiv_data(cat, 0, 1)
     xml_data = minidom.parseString(data)
     total_results = int(xml_data.getElementsByTagName('opensearch:totalResults')[0].childNodes[0].data)
-    print 'starting to fetch {} entries'.format(total_results)
+    print '[INFO] starting to fetch {} entries'.format(total_results)
     if total_results > 0:
         offset = -100
         limit = 100
         while offset < total_results:
             offset += limit
-            print 'fetching next {} entries'.format(limit)
             data = fetch_arxiv_data(cat, offset, limit)
             save_arxiv_data_to_db(data)
-            print 'entries saved!!'
             #filename = "arxiv_{}_{}_{}.xml".format(cat, offset, limit)
             #saveToFile(data, filename)
-    print 'end crawling {}!!'.format(cat_name)
+    print '[INFO] {} end crawling {}!!'.format(datetime.datetime.now(),
+                                               cat_name)
 
 
 def main():
