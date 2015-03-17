@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-def getDOI(entry):
+
+def get_doi(entry):
     doi = ""
     doi_elem = entry.getElementsByTagName('arxiv:doi')
     if doi_elem:
@@ -9,14 +10,14 @@ def getDOI(entry):
     return doi
 
 
-def getArxivId(entry):
+def get_arxiv_id(entry):
     url = entry.getElementsByTagName('id')[0].childNodes[0].data
     tokens = url.split('/')
     arxiv_id = tokens[len(tokens) - 1]
     return arxiv_id
 
 
-def getAuthors(entry):
+def get_authors(entry):
     authors = []
 
     for author in entry.getElementsByTagName('author'):
@@ -29,7 +30,8 @@ def getAuthors(entry):
         )
     return authors
 
-def getFullTextUrl(entry):
+
+def get_full_text_url(entry):
     full_text = ""
     links = entry.getElementsByTagName('link') or []
     for link in links:
@@ -39,7 +41,7 @@ def getFullTextUrl(entry):
     return full_text
 
 
-def getJournal(entry):
+def get_journal(entry):
     journal = ""
     journal_ref = entry.getElementsByTagName('arxiv:journal_ref')
     if journal_ref:
@@ -47,8 +49,9 @@ def getJournal(entry):
     return journal
 
 
-def getUpdatedDate(entry):
+def get_updated_date(entry):
     return entry.getElementsByTagName('updated')[0].childNodes[0].data
+
 
 def parse_arxiv_entry(entry):
     """
@@ -57,17 +60,17 @@ def parse_arxiv_entry(entry):
     :return: dictionary with publication data
     """
     url = entry.getElementsByTagName('id')[0].childNodes[0].data
-    arxiv_id = getArxivId(entry)
-    doi = getDOI(entry)
+    arxiv_id = get_arxiv_id(entry)
+    doi = get_doi(entry)
     title = entry.getElementsByTagName('title')[0].childNodes[0].data.replace('\n', ' ')
     abstract = entry.getElementsByTagName('summary')[0].childNodes[0].data\
         .replace('\n', ' ').lstrip()
-    authors = getAuthors(entry)
-    journal = getJournal(entry)
+    authors = get_authors(entry)
+    journal = get_journal(entry)
     published_date = entry.getElementsByTagName('published')[0].childNodes[0].data
-    updated_date = getUpdatedDate(entry)
+    updated_date = get_updated_date(entry)
     primary_category = entry.getElementsByTagName('arxiv:primary_category')[0].getAttribute('term')
-    full_text = getFullTextUrl(entry)
+    full_text = get_full_text_url(entry)
 
     return {
         'arxiv_id': arxiv_id,

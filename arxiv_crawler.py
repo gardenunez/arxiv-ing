@@ -13,8 +13,9 @@ import argparse
 from xml.dom import minidom
 import datetime
 from arxiv_subject_classification import SUBJECT_CLASSIFICATION
-from arxiv_parser import getArxivId, getUpdatedDate
+from arxiv_parser import get_arxiv_id, get_updated_date
 from db_utils import create_db, insert_raw_data_list
+
 
 def get_args():
     """Get arguments"""
@@ -44,13 +45,14 @@ def create_raw_data_entities(data):
     entries = xml_obj.getElementsByTagName('entry')
     raw_data_entries = []
     for entry in entries:
-        arxiv_id = getArxivId(entry)
-        updated_date = getUpdatedDate(entry)
+        arxiv_id = get_arxiv_id(entry)
+        updated_date = get_updated_date(entry)
         raw_data_entries.append((arxiv_id,
                                  entry.toxml().replace('\n', ''),
                                  updated_date,
                                  str(datetime.datetime.now())))
     return raw_data_entries
+
 
 def crawl_all_categories():
     """Crawl all entries from all categories"""

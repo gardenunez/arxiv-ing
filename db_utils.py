@@ -5,6 +5,7 @@ import sqlite3
 ARXIV_DB = 'arxiv_crawler.db'
 ARXIV_RAW_DATA_TABLE = 'raw_data'
 
+
 def create_db():
     with sqlite3.connect(ARXIV_DB) as conn:
         c = conn.cursor()
@@ -21,8 +22,7 @@ def insert_raw_data_list(raw_data):
     with sqlite3.connect(ARXIV_DB) as conn:
         c = conn.cursor()
         c.executemany(('INSERT OR IGNORE INTO raw_data(arxiv_id, data,updated_date, created_date) \n'
-                       '        values (?,?,?,?)'
-                      ),
+                       '        values (?,?,?,?)'),
                       raw_data)
         conn.commit()
 
