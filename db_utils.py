@@ -4,16 +4,26 @@ import sqlite3
 
 ARXIV_DB = 'arxiv_crawler.db'
 ARXIV_RAW_DATA_TABLE = 'raw_data'
+SUBJECT_CLASSIFICATION_TABLE = 'subject_classification'
 
 
 def create_db():
+    """
+    Create arxiv crawler db schema
+    :return:
+    """
     with sqlite3.connect(ARXIV_DB) as conn:
         c = conn.cursor()
         c.execute('''CREATE TABLE IF NOT EXISTS raw_data
                      (arxiv_id text PRIMARY KEY,
                      data text,
                      updated_date text,
-                     created_date text)''')
+                     created_date text);
+                     CREATE TABLE `subject_classification` (
+                     `name`	TEXT,
+                     `desc`	TEXT,
+                     PRIMARY KEY(name)
+                )''')
         conn.commit()
 
 
@@ -41,9 +51,17 @@ def select_raw_data_by_id(arxiv_id):
         row = c.fetchone()
         return row
 
-
-def select_top_ten_raw_data():
+def get_all_subject_classifications():
+    """
+    Get all subject classifications
+    :return:dict
+    """
     with sqlite3.connect(ARXIV_DB) as conn:
+        conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        for row in c.execute('select * from raw_data limit 10'):
-            print row
+        c.execute('select name, desc from %s' % SUBJECT_CLASSIFICATION_TABLE)
+        rows = c.fetchall()
+        result = {}
+        for row in rows:
+             result[row[0]] = row[1]
+        return result
