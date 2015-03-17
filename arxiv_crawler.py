@@ -6,15 +6,14 @@
 # Add arguments to script: crawl all, category, list-of-ids, etc
 # Update if greater updated date
 # allow crawl into files
-# Subject categories into DB
 # remove unnecessary empty strings in raw data: " ".join(abstract.split())
 import urllib
 import argparse
 from xml.dom import minidom
 import datetime
-from arxiv_subject_classification import SUBJECT_CLASSIFICATION
 from arxiv_parser import get_arxiv_id, get_updated_date
-from db_utils import create_db, insert_raw_data_list
+from db_utils import create_db, insert_raw_data_list, \
+    get_all_subject_classifications
 
 
 def get_args():
@@ -57,21 +56,24 @@ def create_raw_data_entities(data):
 def crawl_all_categories():
     """Crawl all entries from all categories"""
     print '[INFO] start crawling all categories'
-    for cat in SUBJECT_CLASSIFICATION.keys():
+    subject_classifications = get_all_subject_classifications()
+    for category in subject_classifications:
         try:
-            crawl_by_category(cat)
+            crawl_by_category(category)
         except Exception:
-            print '[Error] crawling: {}'.format(cat)
+            print '[Error] crawling: {}'.format(category.Description)
     print '[INFO] end process!!'
 
 
-def crawl_by_category(cat):
-    if cat not in SUBJECT_CLASSIFICATION:
-        raise Exception("Invalid category")
-    cat_name = SUBJECT_CLASSIFICATION[cat]
+def crawl_by_category(category):
+    """
+    Crawl all entries by category
+    :param category: Subject classification to crawl
+    :return:None
+    """
     print '[INFO] {} crawling category: {}'.format(datetime.datetime.now(),
-                                                   cat_name)
-    data = fetch_arxiv_data(cat, 0, 1)
+                                                   category.Description)
+    data = fetch_arxiv_data(category.Name, 0, 1)
     xml_data = minidom.parseString(data)
     total_results = int(xml_data.getElementsByTagName('opensearch:totalResults')[0].childNodes[0].data)
     print '[INFO] starting to fetch {} entries'.format(total_results)
@@ -80,17 +82,16 @@ def crawl_by_category(cat):
         limit = 100
         while offset < total_results:
             offset += limit
-            data = fetch_arxiv_data(cat, offset, limit)
+            data = fetch_arxiv_data(category.Name, offset, limit)
             raw_data = create_raw_data_entities(data)
             insert_raw_data_list(raw_data)
             #filename = "arxiv_{}_{}_{}.xml".format(cat, offset, limit)
             #saveToFile(data, filename)
     print '[INFO] {} end crawling {}!!'.format(datetime.datetime.now(),
-                                               cat_name)
+                                               category.Description)
 
 
 def main():
-    create_db()
     crawl_all_categories()
 
 if __name__ == '__main__':

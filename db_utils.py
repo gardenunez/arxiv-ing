@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sqlite3
+from arxiv_subject_classification import SubjectClassification
 
 ARXIV_DB = 'arxiv_crawler.db'
 ARXIV_RAW_DATA_TABLE = 'raw_data'
@@ -54,14 +55,15 @@ def select_raw_data_by_id(arxiv_id):
 def get_all_subject_classifications():
     """
     Get all subject classifications
-    :return:dict
+    :return:List of SubjectClassification
     """
     with sqlite3.connect(ARXIV_DB) as conn:
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
         c.execute('select name, desc from %s' % SUBJECT_CLASSIFICATION_TABLE)
         rows = c.fetchall()
-        result = {}
+        result = []
         for row in rows:
-             result[row[0]] = row[1]
+            sc = SubjectClassification(row[0], row[1])
+            result.append(sc)
         return result
