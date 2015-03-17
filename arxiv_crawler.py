@@ -12,7 +12,7 @@ import argparse
 from xml.dom import minidom
 import datetime
 from arxiv_parser import get_arxiv_id, get_updated_date
-from db_utils import create_db, insert_raw_data_list, \
+from db_utils import insert_raw_data_list, \
     get_all_subject_classifications
 
 

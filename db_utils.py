@@ -52,6 +52,7 @@ def select_raw_data_by_id(arxiv_id):
         row = c.fetchone()
         return row
 
+
 def get_all_subject_classifications():
     """
     Get all subject classifications
