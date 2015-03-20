@@ -32,8 +32,8 @@ def insert_raw_data_list(raw_data):
     """Save arxiv xml raw data into arxiv_crawler db"""
     with sqlite3.connect(ARXIV_DB) as conn:
         c = conn.cursor()
-        c.executemany(('INSERT OR IGNORE INTO raw_data(arxiv_id, data,updated_date, created_date) \n'
-                       '        values (?,?,?,?)'),
+        c.executemany(('INSERT OR IGNORE INTO {tn}(arxiv_id, data,updated_date, created_date) \n'
+                       '        values (?,?,?,?)').format(tn=ARXIV_RAW_DATA_TABLE),
                       raw_data)
         conn.commit()
 
@@ -48,7 +48,9 @@ def select_raw_data_by_id(arxiv_id):
     with sqlite3.connect(ARXIV_DB) as conn:
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        c.execute('select arxiv_id, data from raw_data where arxiv_id=:Id limit 1', {"Id": arxiv_id})
+        c.execute('select arxiv_id, data from {tn} where arxiv_id=:Id limit 1'.\
+                  format(tn=ARXIV_RAW_DATA_TABLE),
+                  {"Id": arxiv_id})
         row = c.fetchone()
         return row
 
@@ -61,10 +63,10 @@ def get_all_subject_classifications():
     with sqlite3.connect(ARXIV_DB) as conn:
         conn.row_factory = sqlite3.Row
         c = conn.cursor()
-        c.execute('select name, desc from %s' % SUBJECT_CLASSIFICATION_TABLE)
+        c.execute('select name, desc from {tn}'.format(tn=SUBJECT_CLASSIFICATION_TABLE))
         rows = c.fetchall()
         result = []
         for row in rows:
-            sc = SubjectClassification(row[0], row[1])
+            sc = SubjectClassification(row["name"], row["desc"])
             result.append(sc)
         return result

@@ -4,6 +4,7 @@
 #TODO
 # Log errors
 # Add arguments to script: crawl all, category, list-of-ids, etc
+# Add pagination params
 # Update if greater updated date
 # allow crawl into files
 # remove unnecessary empty strings in raw data: " ".join(abstract.split())
