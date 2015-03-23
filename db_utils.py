@@ -70,3 +70,20 @@ def get_all_subject_classifications():
             sc = SubjectClassification(row["name"], row["desc"])
             result.append(sc)
         return result
+
+def get_subject_classification_by_name(name):
+    """
+    Get subject classification by name
+    :param name: name of the category
+    :return: Arxiv category
+    :rtype: SubjectClassification
+    """
+    with sqlite3.connect(ARXIV_DB) as conn:
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute('select name, desc from {tn} where name=:Name'.\
+                  format(tn=SUBJECT_CLASSIFICATION_TABLE), {"Name":name})
+        row = c.fetchone()
+        if row:
+            sc = SubjectClassification(row["name"], row["desc"])
+            return sc
